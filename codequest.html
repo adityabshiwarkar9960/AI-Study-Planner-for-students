@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeQuest — Learn C &amp; Python</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: dark;
+    --bg:#0D1120;
+    --bg-alt:#131A30;
+    --panel:#1A2240;
+    --panel-2:#212B4D;
+    --border:#2B3560;
+    --text:#E9EBF7;
+    --muted:#8C93BC;
+    --amber:#FFB454;
+    --amber-soft:#4A3A22;
+    --teal:#5EEAD4;
+    --coral:#FF7A7A;
+    --violet:#A794FF;
+    --green:#7EE787;
+    --font-mono:'JetBrains Mono', monospace;
+    --font-body:'Inter', sans-serif;
+    --radius:14px;
+  }
+  :root[data-theme="light"]{
+    color-scheme: light;
+    --bg:#f5f8fc;
+    --bg-alt:#ffffff;
+    --panel:#ffffff;
+    --panel-2:#eef3fb;
+    --border:#d5deea;
+    --text:#132033;
+    --muted:#5f6b7a;
+    --amber:#d97706;
+    --amber-soft:#fff3d6;
+    --teal:#0f766e;
+    --coral:#dc2626;
+    --violet:#6d28d9;
+    --green:#15803d;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    overflow-x:hidden;
+    text-rendering:optimizeLegibility;
+    -webkit-font-smoothing:antialiased;
+    color:var(--text);
+  }
+  .app{
+    position:relative;
+    background:
+      radial-gradient(circle at 15% -10%, color-mix(in srgb, var(--amber) 18%, transparent) 0%, transparent 45%),
+      radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--teal) 18%, transparent) 0%, transparent 40%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    min-height:600px;
+    padding:0;
+    line-height:1.5;
+    overflow:hidden;
+  }
+  .app::before,
+  .app::after{
+    content:"";
+    position:fixed;
+    inset:auto;
+    width:26rem;
+    height:26rem;
+    border-radius:50%;
+    filter:blur(48px);
+    opacity:.18;
+    pointer-events:none;
+    z-index:0;
+    animation:drift 18s ease-in-out infinite alternate;
+  }
+  .app::before{
+    top:-10rem;
+    right:-8rem;
+    background:color-mix(in srgb, var(--amber) 24%, transparent);
+  }
+  .app::after{
+    left:-10rem;
+    bottom:-12rem;
+    background:color-mix(in srgb, var(--teal) 18%, transparent);
+    animation-duration:24s;
+    animation-direction:alternate-reverse;
+  }
+  ::selection{ background:var(--amber); color:#1a1305; }
+  button{ font-family:inherit; cursor:pointer; }
+  input{ font-family:inherit; }
+
+  @keyframes drift{
+    from{ transform:translate3d(0,0,0) scale(1); }
+    to{ transform:translate3d(24px,18px,0) scale(1.06); }
+  }
+  @keyframes liftIn{
+    from{ opacity:0; transform:translateY(14px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  @keyframes softPulse{
+    0%,100%{ box-shadow:0 0 0 0 rgba(255,180,84,.0); }
+    50%{ box-shadow:0 0 0 8px rgba(255,180,84,.08); }
+  }
+
+  /* ---------- Header ---------- */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; padding:16px 22px; border-bottom:1px solid var(--border);
+    background:color-mix(in srgb, var(--bg-alt) 76%, transparent); backdrop-filter:blur(10px);
+    position:sticky; top:0; z-index:20; flex-wrap:wrap;
+    animation:liftIn .6s ease both;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand .mark{
+    font-family:var(--font-mono); font-weight:800; color:var(--amber);
+    background:var(--amber-soft); border:1px solid #6b5228; border-radius:8px;
+    padding:5px 8px; font-size:14px; letter-spacing:0.5px;
+  }
+  .brand h1{ font-size:17px; margin:0; font-family:var(--font-mono); font-weight:700; letter-spacing:0.2px; }
+  .brand .sub{ color:var(--muted); font-size:12px; margin-top:1px; }
+
+  .stat-cluster{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .pill{
+    display:flex; align-items:center; gap:6px;
+    background:var(--panel); border:1px solid var(--border);
+    padding:6px 12px; border-radius:999px; font-size:13px; font-weight:600;
+    font-family:var(--font-mono);
+  }
+  .pill.xp{ color:var(--teal); }
+  .pill.streak{ color:var(--coral); }
+  .pill.timer{ color:var(--amber); border-color:#6b5228; cursor:pointer; display:none; }
+  .pill.timer.show{ display:flex; }
+
+  /* ---------- Nav ---------- */
+  .tabs{
+    display:flex; gap:6px; padding:10px 22px; border-bottom:1px solid var(--border);
+    overflow-x:auto; background:color-mix(in srgb, var(--bg-alt) 94%, var(--bg));
+    position:relative; z-index:1;
+    animation:liftIn .72s ease both;
+  }
+  .tab-btn{
+    background:transparent; border:1px solid transparent; color:var(--muted);
+    padding:9px 16px; border-radius:10px; font-size:13.5px; font-weight:600;
+    font-family:var(--font-mono); white-space:nowrap; transition:all .15s ease;
+  }
+  .tab-btn:hover{ color:var(--text); background:var(--panel); }
+  .tab-btn.active{ color:#12172a; background:var(--amber); }
+
+  main{ padding:22px; max-width:1040px; margin:0 auto; position:relative; z-index:1; animation:liftIn .84s ease both; }
+  .view{ display:none; animation:liftIn .35s ease; }
+  .view.active{ display:block; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
+
+  h2.section-title{
+    font-family:var(--font-mono); font-size:20px; margin:0 0 4px 0; display:flex; align-items:center; gap:8px;
+  }
+  p.section-sub{ color:var(--muted); margin:0 0 20px 0; font-size:14px; }
+
+  /* ---------- Learn tab ---------- */
+  .lang-switch{ display:flex; gap:8px; margin-bottom:18px; }
+  .lang-btn{
+    flex:1; padding:14px; border-radius:var(--radius); border:1.5px solid var(--border);
+    background:var(--panel); color:var(--text); font-weight:700; font-family:var(--font-mono);
+    display:flex; flex-direction:column; align-items:center; gap:4px; transition:all .15s ease;
+  }
+  .lang-btn:hover{ transform:translateY(-2px); }
+  .lang-btn .big{ font-size:22px; }
+  .lang-btn small{ color:var(--muted); font-weight:500; font-family:var(--font-body); }
+  .lang-btn.active{ border-color:var(--amber); box-shadow:0 0 0 1px var(--amber) inset; }
+  .lang-btn.active .big{ color:var(--amber); }
+
+  .module-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:14px; }
+  .module-card{
+    background:var(--panel); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px; text-align:left; color:var(--text); display:flex; flex-direction:column; gap:10px;
+    transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+  }
+  .module-card:hover{ transform:translateY(-3px); border-color:var(--amber); box-shadow:0 12px 28px rgba(0,0,0,.18); }
+  .module-card .icon{ font-size:24px; }
+  .module-card .title{ font-weight:700; font-size:14.5px; }
+  .module-bar{ height:6px; border-radius:4px; background:var(--bg-alt); overflow:hidden; }
+  .module-bar > div{ height:100%; background:linear-gradient(90deg, var(--teal), var(--amber)); }
+  .module-card .count{ font-size:11.5px; color:var(--muted); font-family:var(--font-mono); }
+  .module-card .done-tag{ font-size:11px; color:var(--green); font-family:var(--font-mono); }
+
+  /* ---------- Quiz panel ---------- */
+  .quiz-overlay{
+    position:fixed; inset:0; background:color-mix(in srgb, var(--bg) 78%, transparent); backdrop-filter:blur(6px);
+    display:none; align-items:center; justify-content:center; z-index:100; padding:16px;
+  }
+  .quiz-overlay.show{ display:flex; }
+  .quiz-card{
+    background:var(--bg-alt); border:1px solid var(--border); border-radius:18px;
+    max-width:600px; width:100%; max-height:88vh; overflow-y:auto; padding:22px;
+    animation:liftIn .25s ease both;
+    box-shadow:0 24px 80px rgba(0,0,0,.4);
+  }
+  .quiz-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .quiz-top .tag{ font-family:var(--font-mono); color:var(--amber); font-size:12.5px; font-weight:700; }
+  .quiz-close{ background:none; border:none; color:var(--muted); font-size:20px; line-height:1; }
+  .quiz-close:hover{ color:var(--text); }
+  .code-block{
+    background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:14px 16px;
+    font-family:var(--font-mono); font-size:13.5px; color:#D7DCF5; white-space:pre; overflow-x:auto; margin-bottom:14px;
+  }
+  .quiz-question{ font-size:15px; font-weight:600; margin-bottom:14px; }
+  .options{ display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
+  .opt-btn{
+    text-align:left; background:var(--panel); border:1.5px solid var(--border); color:var(--text);
+    padding:11px 14px; border-radius:10px; font-size:13.5px; font-family:var(--font-mono);
+    transition:all .12s ease;
+  }
+  .opt-btn:hover:not(:disabled){ border-color:var(--violet); transform:translateY(-1px); }
+  .opt-btn.correct{ border-color:var(--green); background:#16281c; }
+  .opt-btn.wrong{ border-color:var(--coral); background:#2b1a1c; }
+  .opt-btn:disabled{ cursor:default; opacity:0.85; }
+  .fill-row{ display:flex; gap:8px; margin-bottom:14px; }
+  .fill-row input{
+    flex:1; background:var(--panel); border:1.5px solid var(--border); color:var(--text);
+    padding:11px 14px; border-radius:10px; font-family:var(--font-mono); font-size:14px;
+  }
+  .fill-row button{
+    background:var(--amber); color:#1a1305; border:none; padding:0 18px; border-radius:10px; font-weight:700;
+  }
+  .feedback{ border-radius:10px; padding:12px 14px; font-size:13.5px; margin-bottom:14px; display:none; }
+  .feedback.show{ display:block; }
+  .feedback.ok{ background:#122a1c; color:var(--green); border:1px solid #245a37; }
+  .feedback.bad{ background:#2a1416; color:var(--coral); border:1px solid #5c2a2c; }
+  .quiz-actions{ display:flex; justify-content:flex-end; }
+  .next-btn{
+    background:var(--teal); color:#0a2620; border:none; padding:10px 20px; border-radius:10px;
+    font-weight:700; font-family:var(--font-mono); display:none;
+  }
+  .next-btn.show{ display:inline-block; }
+  .xp-float{
+    position:fixed; font-family:var(--font-mono); font-weight:800; color:var(--teal);
+    font-size:20px; pointer-events:none; z-index:200; animation:floatUp 1.1s ease forwards;
+  }
+  @keyframes floatUp{ 0%{opacity:0; transform:translateY(0);} 15%{opacity:1;} 100%{opacity:0; transform:translateY(-50px);} }
+
+  /* ---------- Progress tab ---------- */
+  .prog-grid{ display:grid; grid-template-columns:1.2fr 1fr; gap:16px; margin-bottom:18px; }
+  @media (max-width:640px){ .prog-grid{ grid-template-columns:1fr; } }
+  .card{ background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:18px; }
+  .level-row{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:8px; }
+  .level-row .lv{ font-family:var(--font-mono); font-size:26px; font-weight:800; color:var(--amber); }
+  .level-row .xp-num{ font-family:var(--font-mono); color:var(--muted); font-size:13px; }
+  .xp-bar{ height:10px; border-radius:6px; background:var(--bg-alt); overflow:hidden; }
+  .xp-bar > div{ height:100%; background:linear-gradient(90deg, var(--amber), var(--teal)); transition:width .4s ease; }
+  .streak-flame{ display:flex; align-items:center; gap:10px; }
+  .streak-flame .num{ font-family:var(--font-mono); font-size:34px; font-weight:800; color:var(--coral); }
+  .streak-flame .lbl{ color:var(--muted); font-size:13px; }
+  .day-grid{ display:flex; gap:5px; margin-top:12px; flex-wrap:wrap; }
+  .day-cell{ width:16px; height:16px; border-radius:4px; background:var(--bg-alt); border:1px solid var(--border); }
+  .day-cell.active{ background:var(--coral); border-color:var(--coral); }
+  .badges-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr)); gap:10px; }
+  .badge{
+    background:var(--bg-alt); border:1px solid var(--border); border-radius:12px; padding:12px 10px;
+    text-align:center; opacity:0.35; filter:grayscale(1);
+  }
+  .badge.unlocked{ opacity:1; filter:none; border-color:var(--amber); }
+  .badge .emoji{ font-size:22px; }
+  .badge .name{ font-size:11.5px; font-weight:700; margin-top:6px; }
+  .reset-link{ background:none; border:none; color:var(--muted); text-decoration:underline; font-size:12px; margin-top:10px; }
+
+  /* ---------- Focus tab ---------- */
+  .focus-wrap{ display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .presets{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .preset-btn{
+    background:var(--panel); border:1.5px solid var(--border); color:var(--text); padding:9px 16px;
+    border-radius:10px; font-family:var(--font-mono); font-size:13px; font-weight:600;
+  }
+  .preset-btn:hover{ transform:translateY(-1px); }
+  .preset-btn.active{ border-color:var(--amber); color:var(--amber); }
+  .custom-row{ display:flex; align-items:center; gap:8px; color:var(--muted); font-size:13px; }
+  .custom-row input{ width:60px; background:var(--panel); border:1.5px solid var(--border); color:var(--text); padding:7px 10px; border-radius:8px; text-align:center; }
+  .timer-ring{ position:relative; width:230px; height:230px; display:flex; align-items:center; justify-content:center; }
+  .timer-ring svg{ transform:rotate(-90deg); width:230px; height:230px; }
+  .timer-ring circle{ fill:none; stroke-width:10; }
+  .timer-ring .bg{ stroke:var(--bg-alt); }
+  .timer-ring .fg{ stroke:var(--amber); stroke-linecap:round; transition:stroke-dashoffset 1s linear; }
+  .timer-center{ position:absolute; text-align:center; }
+  .timer-center .time{ font-family:var(--font-mono); font-size:38px; font-weight:800; }
+  .timer-center .phase{ font-size:12.5px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-top:4px; }
+  .timer-controls{ display:flex; gap:10px; }
+  .tc-btn{ padding:11px 24px; border-radius:10px; border:none; font-weight:700; font-family:var(--font-mono); font-size:13.5px; }
+  .tc-btn.start{ background:var(--amber); color:#1a1305; }
+  .tc-btn.pause{ background:var(--violet); color:#160f36; }
+  .tc-btn.reset{ background:var(--panel); color:var(--text); border:1.5px solid var(--border); }
+  .focus-tip{ color:var(--muted); font-size:13px; text-align:center; max-width:320px; }
+  .focus-note{
+    background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:12px 16px;
+    font-size:13px; color:var(--muted); display:flex; gap:10px; align-items:flex-start; max-width:420px;
+  }
+  .today-stat{ font-family:var(--font-mono); font-size:13px; color:var(--teal); }
+
+  /* ---------- Chill tab ---------- */
+  .sound-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:14px; margin-bottom:20px; }
+  .sound-card{
+    background:var(--panel); border:1.5px solid var(--border); border-radius:var(--radius); padding:18px;
+    display:flex; flex-direction:column; gap:12px; align-items:center; text-align:center;
+    transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+  }
+  .sound-card:hover{ transform:translateY(-3px); box-shadow:0 14px 28px rgba(0,0,0,.16); }
+  .sound-card.playing{ border-color:var(--teal); box-shadow:0 0 0 1px var(--teal) inset; }
+  .sound-card .emoji{ font-size:30px; }
+  .sound-card .name{ font-weight:700; font-size:14px; }
+  .sound-card .desc{ color:var(--muted); font-size:12px; }
+  .bars{ display:flex; gap:3px; align-items:flex-end; height:20px; }
+  .bars span{ width:4px; background:var(--teal); border-radius:2px; height:4px; opacity:0.4; }
+  .sound-card.playing .bars span{ animation:bounce 1s ease-in-out infinite; opacity:1; }
+  .bars span:nth-child(1){ animation-delay:0s; } .bars span:nth-child(2){ animation-delay:.15s; }
+  .bars span:nth-child(3){ animation-delay:.3s; } .bars span:nth-child(4){ animation-delay:.45s; }
+  .bars span:nth-child(5){ animation-delay:.6s; }
+  @keyframes bounce{ 0%,100%{ height:4px; } 50%{ height:18px; } }
+  .play-toggle{
+    background:var(--bg-alt); border:1.5px solid var(--border); color:var(--text); padding:8px 18px;
+    border-radius:999px; font-family:var(--font-mono); font-size:12.5px; font-weight:700;
+  }
+  .play-toggle:hover{ border-color:var(--teal); }
+  .sound-card.playing .play-toggle{ background:var(--teal); color:#062622; border-color:var(--teal); }
+  .vol-row{ display:flex; align-items:center; gap:10px; max-width:340px; margin:0 auto; }
+  .vol-row input{ flex:1; }
+
+  .hero-strip{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:18px 20px;
+    margin-bottom:18px;
+    border:1px solid var(--border);
+    border-radius:20px;
+    background:linear-gradient(135deg, color-mix(in srgb, var(--bg-alt) 82%, transparent), color-mix(in srgb, var(--panel) 88%, transparent));
+    box-shadow:0 18px 36px rgba(0,0,0,.08);
+    animation:liftIn .58s ease both;
+  }
+  .hero-strip h2{ margin:0 0 4px; font-size:18px; }
+  .hero-strip p{ margin:0; color:var(--muted); font-size:13px; max-width:56ch; }
+  .hero-meta{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+  .hero-chip{
+    padding:8px 12px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:var(--panel);
+    font-family:var(--font-mono);
+    font-size:12px;
+    font-weight:700;
+    color:var(--text);
+  }
+
+  footer{ text-align:center; color:var(--muted); font-size:11.5px; padding:24px; }
+
+  .topbar,
+  .tabs,
+  main,
+  .card,
+  .module-card,
+  .lang-btn,
+  .sound-card,
+  .quiz-card{
+    will-change:transform, opacity;
+  }
+
+  .pill.xp{ animation:softPulse 3.2s ease-in-out infinite; }
+
+  @media (max-width:520px){
+    .topbar{ padding:12px 14px; }
+    main{ padding:16px; }
+    .timer-ring, .timer-ring svg{ width:190px; height:190px; }
+    .hero-strip{ padding:16px; flex-direction:column; align-items:flex-start; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation-duration:0.01ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:0.01ms !important;
+      scroll-behavior:auto !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark">&gt;_</div>
+      <div>
+        <h1>CodeQuest</h1>
+        <div class="sub">Learn C &amp; Python, one quest at a time</div>
+      </div>
+    </div>
+    <div class="stat-cluster">
+      <div class="pill xp">⚡ <span id="xpDisplay">0</span> XP</div>
+      <div class="pill streak">🔥 <span id="streakDisplay">0</span> day streak</div>
+      <button class="pill timer" id="miniTimer" onclick="goToFocus()">⏱ 25:00</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-view="learn">01 · Learn</button>
+    <button class="tab-btn" data-view="progress">02 · Progress</button>
+    <button class="tab-btn" data-view="focus">03 · Focus</button>
+    <button class="tab-btn" data-view="chill">04 · Chill</button>
+  </div>
+
+  <main>
+    <div class="hero-strip">
+      <div>
+        <h2>CodeQuest</h2>
+        <p>Practice C and Python with short game-style challenges, a focus timer, and ambient study sounds.</p>
+      </div>
+      <div class="hero-meta">
+        <span class="hero-chip">XP · <span id="xpDisplayHero">0</span></span>
+        <span class="hero-chip">Streak · <span id="streakDisplayHero">0</span> day</span>
+        <span class="hero-chip">Mode · Study</span>
+      </div>
+    </div>
+
+    <!-- LEARN -->
+    <section class="view active" id="view-learn">
+      <h2 class="section-title">🎮 Pick your language</h2>
+      <p class="section-sub">Answer challenges to earn XP. Each module has quick, game-style questions — predict output, spot the bug, or fill the blank.</p>
+      <div class="lang-switch">
+        <button class="lang-btn active" data-lang="py"><span class="big">🐍</span>Python<small>8 modules · 24 challenges</small></button>
+        <button class="lang-btn" data-lang="c"><span class="big">⚙️</span>C<small>6 modules · 24 challenges</small></button>
+      </div>
+      <div class="module-grid" id="moduleGrid"></div>
+    </section>
+
+    <!-- PROGRESS -->
+    <section class="view" id="view-progress">
+      <h2 class="section-title">📊 Your progress</h2>
+      <p class="section-sub">Daily play builds your streak. Come back every day to keep the flame alive.</p>
+      <div class="prog-grid">
+        <div class="card">
+          <div class="level-row">
+            <div><span class="lv" id="levelNum">Lv.1</span></div>
+            <div class="xp-num"><span id="xpNow">0</span> / <span id="xpNext">100</span> XP</div>
+          </div>
+          <div class="xp-bar"><div id="xpBarFill" style="width:0%"></div></div>
+        </div>
+        <div class="card">
+          <div class="streak-flame">
+            <div class="num" id="streakNum2">0</div>
+            <div class="lbl">day streak<br>keep it going!</div>
+          </div>
+          <div class="day-grid" id="dayGrid"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:16px;">
+        <h2 class="section-title" style="font-size:15px;">🏅 Badges</h2>
+        <div class="badges-grid" id="badgeGrid"></div>
+      </div>
+      <button class="reset-link" onclick="resetProgress()">Reset all progress</button>
+    </section>
+
+    <!-- FOCUS -->
+    <section class="view" id="view-focus">
+      <h2 class="section-title">⏱ Focus timer</h2>
+      <p class="section-sub">Put your phone down and study distraction-free. Pick a session length and start.</p>
+      <div class="focus-wrap">
+        <div class="presets">
+          <button class="preset-btn active" data-focus="25" data-break="5">25 / 5 — Classic</button>
+          <button class="preset-btn" data-focus="50" data-break="10">50 / 10 — Deep work</button>
+          <button class="preset-btn" data-focus="15" data-break="3">15 / 3 — Quick sprint</button>
+        </div>
+        <div class="custom-row">
+          Custom focus minutes:
+          <input type="number" id="customMinutes" min="1" max="180" placeholder="—">
+          <button class="preset-btn" onclick="useCustom()">Use</button>
+        </div>
+        <div class="timer-ring">
+          <svg viewBox="0 0 230 230">
+            <circle class="bg" cx="115" cy="115" r="100"></circle>
+            <circle class="fg" id="ringFg" cx="115" cy="115" r="100"></circle>
+          </svg>
+          <div class="timer-center">
+            <div class="time" id="timeDisplay">25:00</div>
+            <div class="phase" id="phaseDisplay">Focus</div>
+          </div>
+        </div>
+        <div class="timer-controls">
+          <button class="tc-btn start" id="startBtn" onclick="startTimer()">Start</button>
+          <button class="tc-btn pause" id="pauseBtn" onclick="pauseTimer()" style="display:none;">Pause</button>
+          <button class="tc-btn reset" onclick="resetTimer()">Reset</button>
+        </div>
+        <div class="focus-note">📵 <span>While a focus session runs, keep your phone out of reach. Every completed session earns bonus XP and counts toward your streak.</span></div>
+        <div class="today-stat" id="focusStat">0 focus sessions completed today · 0 min studied</div>
+      </div>
+    </section>
+
+    <!-- CHILL -->
+    <section class="view" id="view-chill">
+      <h2 class="section-title">🎧 Chill &amp; focus sounds</h2>
+      <p class="section-sub">Ambient, generative sound to ease tension while you study. Pick one — no downloads, no ads, just sound.</p>
+      <div class="sound-grid">
+        <div class="sound-card" data-sound="calm">
+          <div class="emoji">🌙</div>
+          <div class="name">Calm Pad</div>
+          <div class="desc">Slow evolving chord, gentle and steady</div>
+          <div class="bars"><span></span><span></span><span></span><span></span><span></span></div>
+          <button class="play-toggle" onclick="toggleSound('calm')">Play</button>
+        </div>
+        <div class="sound-card" data-sound="rain">
+          <div class="emoji">🌧️</div>
+          <div class="name">Rainy Focus</div>
+          <div class="desc">Soft filtered rain texture</div>
+          <div class="bars"><span></span><span></span><span></span><span></span><span></span></div>
+          <button class="play-toggle" onclick="toggleSound('rain')">Play</button>
+        </div>
+        <div class="sound-card" data-sound="lofi">
+          <div class="emoji">✨</div>
+          <div class="name">Night Lo-fi Tone</div>
+          <div class="desc">Warm wobbly triad, gentle vibrato</div>
+          <div class="bars"><span></span><span></span><span></span><span></span><span></span></div>
+          <button class="play-toggle" onclick="toggleSound('lofi')">Play</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="vol-row">
+          🔈 <input type="range" id="volSlider" min="0" max="100" value="30" oninput="setVolume(this.value)"> 🔊
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>CodeQuest · learn a little every day</footer>
+</div>
+
+<!-- Quiz overlay -->
+<div class="quiz-overlay" id="quizOverlay">
+  <div class="quiz-card">
+    <div class="quiz-top">
+      <span class="tag" id="quizTag">PYTHON · VARIABLES</span>
+      <button class="quiz-close" onclick="closeQuiz()">✕</button>
+    </div>
+    <div class="code-block" id="quizCode" style="display:none;"></div>
+    <div class="quiz-question" id="quizQuestion"></div>
+    <div class="options" id="quizOptions"></div>
+    <div class="fill-row" id="quizFillRow" style="display:none;">
+      <input type="text" id="quizFillInput" placeholder="Type your answer...">
+      <button onclick="submitFill()">Check</button>
+    </div>
+    <div class="feedback" id="quizFeedback"></div>
+    <div class="quiz-actions">
+      <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================= CONTENT ============================= */
+const MODULES = {
+  py: [
+    { id:'py-0', title:'Variables & Types', icon:'🔤', questions:[
+      { type:'mcq', code:`x = 10\ny = "10"\nprint(type(x) == type(y))`, q:'What does this print?', options:['True','False','Error','None'], answer:1, explain:'x is an int and y is a str — different types, so the comparison is False.' },
+      { type:'fill', code:`age = ___(input())  # convert the typed text into a whole number`, q:'Fill in the blank to convert input text into an integer.', accept:['int'], explain:'int() converts a string like "21" into the number 21.' },
+      { type:'mcq', code:`a = 5\nb = 2\nprint(a / b)\nprint(a // b)`, q:'What gets printed, in order?', options:['2.5 and 2','2 and 2','2.5 and 2.5','Error'], answer:0, explain:'"/" always gives a float (true division); "//" floors the result to an int-like value.' },
+      { type:'bug', code:`name = 'Alice\nprint(name)`, q:"What's wrong with this code?", options:['Missing closing quote','Missing semicolon','Invalid variable name','Nothing is wrong'], answer:0, explain:"The string starts with ' but never closes — Python needs a matching quote." },
+    ]},
+    { id:'py-1', title:'Operators', icon:'➗', questions:[
+      { type:'mcq', code:`print(2 ** 3)`, q:'What is printed?', options:['6','8','9','5'], answer:1, explain:'** is the power operator: 2 to the power of 3 is 8.' },
+      { type:'mcq', code:`print(10 % 3)`, q:'What is printed?', options:['1','3','0','3.33'], answer:0, explain:'% gives the remainder of the division: 10 ÷ 3 leaves remainder 1.' },
+      { type:'mcq', code:`print(True and False)`, q:'What is printed?', options:['True','False'], answer:1, explain:'"and" is only True when both sides are True.' },
+      { type:'fill', code:`x = 7\nprint(x ___ 2 == 1)  # check if x is odd`, q:'Fill in the operator that checks a remainder.', accept:['%'], explain:'x % 2 == 1 checks if there is a remainder of 1 when divided by 2, meaning x is odd.' },
+    ]},
+    { id:'py-2', title:'Conditionals', icon:'🔀', questions:[
+      { type:'predict', code:`x = 5\nif x > 10:\n    print("big")\nelif x > 3:\n    print("medium")\nelse:\n    print("small")`, q:'What does this print?', options:['big','medium','small','nothing'], answer:1, explain:'x is 5, which fails x > 10 but passes x > 3, so "medium" prints.' },
+      { type:'bug', code:`x = 5\nif x = 5:\n    print("yes")`, q:"What's the bug here?", options:['Should use == instead of =','Missing a colon','x should be a string','Nothing wrong'], answer:0, explain:'A single = is assignment; comparisons need ==. Python will actually raise a SyntaxError here.' },
+      { type:'fill', code:`num = 8\nif num ___ 2 == 0:\n    print("even")`, q:'Fill in the operator to check evenness.', accept:['%'], explain:'num % 2 == 0 means num divides evenly by 2.' },
+      { type:'mcq', code:`values = [0, 1, "hello", [1,2]]`, q:'Which of these values is "falsy" in Python?', options:['0','1','"hello"','[1,2]'], answer:0, explain:'0 is falsy. Non-empty strings, non-zero numbers, and non-empty lists are truthy.' },
+    ]},
+    { id:'py-3', title:'Loops', icon:'🔁', questions:[
+      { type:'predict', code:`total = 0\nfor i in range(1, 4):\n    total += i\nprint(total)`, q:'What does this print?', options:['3','6','10','4'], answer:1, explain:'range(1,4) gives 1,2,3. Their sum is 6.' },
+      { type:'mcq', code:``, q:'Which loop is best when you don\u2019t know the number of iterations in advance, only a stopping condition?', options:['for loop','while loop','range loop','list loop'], answer:1, explain:'while loops run until a condition becomes False, which fits unknown iteration counts.' },
+      { type:'fill', code:`for i in ___(5):\n    print(i)  # prints 0 1 2 3 4`, q:'Fill in the function used to generate the sequence.', accept:['range'], explain:'range(5) produces 0 through 4.' },
+      { type:'bug', code:`while True:\n    print("hi")`, q:"What's missing from this loop?", options:['A break condition to stop it','A colon','Indentation','Nothing, it is fine'], answer:0, explain:'Without a break or a condition that turns False, this loop runs forever.' },
+    ]},
+    { id:'py-4', title:'Functions', icon:'🧩', questions:[
+      { type:'predict', code:`def add(a, b):\n    return a + b\n\nprint(add(2, 3))`, q:'What does this print?', options:['5','23','Error','None'], answer:0, explain:'add(2,3) returns 2+3 = 5.' },
+      { type:'fill', code:`def greet(name):\n    ___ f"Hello {name}"`, q:'Fill in the keyword to send a value back from the function.', accept:['return'], explain:'return sends the value back to whoever called the function.' },
+      { type:'mcq', code:`def f(x=5):\n    return x\n\nprint(f())`, q:'What does this print?', options:['5','Error: missing argument','None','0'], answer:0, explain:'x=5 is a default value used when no argument is passed.' },
+      { type:'bug', code:`def square(x):\n    x * x\n\nprint(square(4))`, q:"What's the bug?", options:['Missing return statement, so it prints None','x should be a string','Missing colon','Nothing wrong'], answer:0, explain:'The function computes x*x but never returns it, so calling it gives None.' },
+    ]},
+    { id:'py-5', title:'Lists & Dictionaries', icon:'📦', questions:[
+      { type:'predict', code:`lst = [1, 2, 3]\nlst.append(4)\nprint(lst)`, q:'What does this print?', options:['[1, 2, 3]','[1, 2, 3, 4]','[4, 1, 2, 3]','Error'], answer:1, explain:'.append(4) adds 4 to the end of the list.' },
+      { type:'mcq', code:`d = {'a': 1, 'b': 2}\nprint(d['a'])`, q:'What does this print?', options:['1','2','a','Error'], answer:0, explain:"d['a'] looks up the value stored under key 'a', which is 1." },
+      { type:'fill', code:`lst = [1, 2, 3]\nprint(lst[___])  # get the last element`, q:'Fill in the index that gets the last item.', accept:['-1'], explain:'Negative indices count from the end; -1 is the last element.' },
+      { type:'bug', code:`d = {'a': 1}\nprint(d['b'])`, q:'What happens when this runs?', options:['KeyError, because "b" is not in the dictionary','Prints None','Prints 1','Prints an empty string'], answer:0, explain:"Accessing a missing key with [] raises a KeyError. Use d.get('b') to avoid this." },
+    ]},
+    { id:'py-6', title:'Strings', icon:'✒️', questions:[
+      { type:'predict', code:`s = "hello"\nprint(s.upper())`, q:'What does this print?', options:['hello','HELLO','Hello','Error'], answer:1, explain:'.upper() returns a new string with all letters capitalized.' },
+      { type:'fill', code:`name = "Sam"\nage = 21\nprint(f"{name} is ___ years old")`, q:'Fill in the blank to insert the age variable inside the f-string.', accept:['{age}'], explain:'f-strings insert variables using curly braces: {age}.' },
+      { type:'mcq', code:`print(len("python"))`, q:'What does this print?', options:['5','6','7','Error'], answer:1, explain:'"python" has 6 characters.' },
+      { type:'bug', code:`num = 5\nprint("Value: " + num)`, q:"What's the bug?", options:['Cannot concatenate a string and an int directly — need str(num)','Missing quotes','Missing colon','Nothing wrong'], answer:0, explain:'Python will not silently convert num to text; wrap it with str(num) first.' },
+    ]},
+    { id:'py-7', title:'OOP Basics', icon:'🏗️', questions:[
+      { type:'predict', code:`class Dog:\n    def __init__(self, name):\n        self.name = name\n\nd = Dog("Rex")\nprint(d.name)`, q:'What does this print?', options:['Dog','Rex','name','Error'], answer:1, explain:'__init__ stores "Rex" into self.name when the object is created.' },
+      { type:'fill', code:`class Dog:\n    def __init__(self, name):\n        ___.name = name`, q:'Fill in the keyword referring to the current instance.', accept:['self'], explain:'self refers to the specific object being created or used.' },
+      { type:'mcq', code:``, q:'What is the special method used to set up a new object\u2019s starting values called?', options:['__init__','__main__','__self__','__new__'], answer:0, explain:'__init__ runs automatically when an object is created, to set initial attributes.' },
+      { type:'bug', code:`class Dog:\n    def bark(self):\n        print("Woof")\n\nDog.bark()`, q:"What's wrong here?", options:['bark() needs an instance, e.g. Dog().bark()','bark should be static','Missing colon','Nothing wrong'], answer:0, explain:'Instance methods need an object: create one first, like d = Dog(); d.bark().' },
+    ]},
+  ],
+  c: [
+    { id:'c-0', title:'Variables & Types', icon:'🔤', questions:[
+      { type:'mcq', code:`int x = 5;\nfloat y = 2.0;\nprintf("%d", x + y);`, q:'What happens here?', options:['Prints 7','Prints 7.0','Undefined behavior — wrong format specifier for a float result','Compile error'], answer:2, explain:'x+y promotes to float, but %d expects an int — this is undefined behavior in C.' },
+      { type:'fill', code:`___ count = 0;  // declare an integer variable`, q:'Fill in the type keyword.', accept:['int'], explain:'int declares a whole-number variable in C.' },
+      { type:'mcq', code:`printf("%zu", sizeof(char));`, q:'What does sizeof(char) equal on virtually all systems?', options:['1','2','4','8'], answer:0, explain:'A char is defined to be exactly 1 byte in C.' },
+      { type:'bug', code:`int x = "5";`, q:"What's wrong with this line?", options:['Assigning a string literal to an int is a type mismatch','Missing semicolon','x is not declared','Nothing wrong'], answer:0, explain:'"5" is a char pointer, not an int — this will not compile cleanly.' },
+    ]},
+    { id:'c-1', title:'Operators', icon:'➗', questions:[
+      { type:'predict', code:`printf("%d", 7 / 2);`, q:'What does this print?', options:['3','3.5','4','Error'], answer:0, explain:'Both operands are ints, so C performs integer division, truncating to 3.' },
+      { type:'predict', code:`printf("%d", 7 % 2);`, q:'What does this print?', options:['0','1','3','3.5'], answer:1, explain:'7 divided by 2 leaves a remainder of 1.' },
+      { type:'mcq', code:``, q:'Which operator increases a variable by 1?', options:['++','--','**','%%'], answer:0, explain:'++ is the increment operator in C.' },
+      { type:'predict', code:`int a = 5, b = 10;\nprintf("%d", a == b);`, q:'What does this print?', options:['0','1','true','Error'], answer:0, explain:'a == b is a comparison that evaluates to 0 (false) since 5 is not 10.' },
+    ]},
+    { id:'c-2', title:'Conditionals', icon:'🔀', questions:[
+      { type:'bug', code:`int x = 5;\nif (x = 10)\n    printf("yes");\nelse\n    printf("no");`, q:'What does this actually print?', options:['yes','no','Compile error','Nothing'], answer:0, explain:'A single = assigns 10 to x inside the condition; since 10 is non-zero (truthy), "yes" prints. This is a classic C bug.' },
+      { type:'fill', code:`if (x ___ 5) {\n    printf("match");\n}`, q:'Fill in the equality comparison operator.', accept:['=='], explain:'== compares values; a single = would assign instead.' },
+      { type:'mcq', code:``, q:'In a switch statement, forgetting a break causes:', options:['Fall-through into the next case','A compile error','The switch to be skipped entirely','An infinite loop'], answer:0, explain:'Without break, execution continues into the following case block.' },
+      { type:'bug', code:`if (x > 5); {\n    printf("big");\n}`, q:"What's the bug?", options:['Stray semicolon makes the block always run, regardless of the condition','Missing braces','x is undeclared','Nothing wrong'], answer:0, explain:'The semicolon ends the if-statement early; the block after it always executes.' },
+    ]},
+    { id:'c-3', title:'Loops', icon:'🔁', questions:[
+      { type:'predict', code:`for (int i = 0; i < 3; i++) {\n    printf("%d", i);\n}`, q:'What does this print?', options:['012','123','0123','321'], answer:0, explain:'i runs through 0, 1, 2 before the condition i < 3 fails.' },
+      { type:'fill', code:`while (___) {\n    // runs forever\n}`, q:'Fill in a condition that never becomes false.', accept:['1','true'], explain:'while(1) is a classic infinite loop in C since 1 is always truthy.' },
+      { type:'mcq', code:``, q:'A do-while loop guarantees:', options:['The body executes at least once, before the condition is checked','The condition is checked before anything runs','It behaves exactly like a for loop','It never terminates'], answer:0, explain:'do-while checks the condition after running the body once.' },
+      { type:'bug', code:`for (int i = 0; i < 5; ) {\n    printf("%d", i);\n}`, q:"What's the bug?", options:['Missing i++ causes an infinite loop','Missing semicolon','i is undeclared','Nothing wrong'], answer:0, explain:'Without incrementing i, the condition i < 5 is always true.' },
+    ]},
+    { id:'c-4', title:'Functions', icon:'🧩', questions:[
+      { type:'predict', code:`int add(int a, int b) {\n    return a + b;\n}\n\nprintf("%d", add(2, 3));`, q:'What does this print?', options:['5','23','Error','0'], answer:0, explain:'add(2,3) returns 2+3 = 5.' },
+      { type:'mcq', code:``, q:'True or false: every C function must declare a return type.', options:['True','False'], answer:0, explain:'Even functions that return nothing must declare void as their return type.' },
+      { type:'fill', code:`___ myFunc();  // a function that returns nothing`, q:'Fill in the return type for a function with no return value.', accept:['void'], explain:'void indicates the function does not return a value.' },
+      { type:'bug', code:`int square(int x) {\n    x * x;\n}`, q:"What's the bug?", options:['Missing return statement — the caller gets a garbage/undefined value','Missing semicolon','x is unused','Nothing wrong'], answer:0, explain:'The multiplication result is computed but never returned to the caller.' },
+    ]},
+    { id:'c-5', title:'Pointers & Arrays', icon:'📍', questions:[
+      { type:'mcq', code:`int arr[5];\nprintf("%d", arr[5]);`, q:"What's the issue?", options:['Out-of-bounds access — valid indices are 0 to 4','arr[5] is always 0','This is perfectly safe','Compile error'], answer:0, explain:'An array of size 5 has valid indices 0-4; arr[5] reads out of bounds memory.' },
+      { type:'predict', code:`int x = 10;\nint *p = &x;\nprintf("%d", *p);`, q:'What does this print?', options:['The address of x','10','Error','Undefined'], answer:1, explain:'*p dereferences the pointer, giving the value stored at that address: 10.' },
+      { type:'fill', code:`int ___ ptr;  // declare a pointer to an int`, q:'Fill in the symbol that makes this a pointer declaration.', accept:['*'], explain:'The asterisk marks ptr as a pointer to int.' },
+      { type:'bug', code:`int *p;\n*p = 5;`, q:"What's the bug?", options:['Dereferencing an uninitialized (wild) pointer','p should be an int','Missing semicolon','Nothing wrong'], answer:0, explain:'p was never set to point at valid memory, so writing through it is undefined behavior.' },
+    ]},
+  ],
+};
+
+const BADGES = [
+  { id:'first', emoji:'🌱', name:'First Steps', check:p => Object.keys(p.completed).length >= 1 },
+  { id:'xp50', emoji:'⚡', name:'Warming Up', check:p => p.xp >= 50 },
+  { id:'xp100', emoji:'💯', name:'Century', check:p => p.xp >= 100 },
+  { id:'xp300', emoji:'🚀', name:'XP Rocket', check:p => p.xp >= 300 },
+  { id:'streak3', emoji:'🔥', name:'On Fire (3-day)', check:p => p.streak >= 3 },
+  { id:'streak7', emoji:'🏆', name:'Week Warrior', check:p => p.streak >= 7 },
+  { id:'pyall', emoji:'🐍', name:'Pythonista', check:p => allDone(p,'py') },
+  { id:'call', emoji:'⚙️', name:'C Explorer', check:p => allDone(p,'c') },
+  { id:'focus1', emoji:'🎯', name:'Focused Mind', check:p => p.focusSessions >= 1 },
+  { id:'focus5', emoji:'🧘', name:'Deep Work', check:p => p.focusSessions >= 5 },
+];
+
+function allDone(p, lang){
+  const mods = MODULES[lang];
+  let total = 0;
+  for(const m of mods) total += m.questions.length;
+  let done = 0;
+  for(const key in p.completed) if(key.startsWith(lang+'-')) done++;
+  return done >= total;
+}
+
+/* ============================= STATE ============================= */
+let progress = { xp:0, streak:0, lastActive:null, completed:{}, badgesSeen:[], focusSessions:0, focusMinutes:0, activityDays:{} };
+let currentLang = 'py';
+let activeModule = null;
+let activeQIndex = 0;
+let answered = false;
+
+const STORAGE_KEY = 'codequest_progress_v1';
+
+async function loadProgress(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){
+      const loaded = JSON.parse(res.value);
+      progress = Object.assign(progress, loaded);
+    }
+  }catch(e){ /* no saved progress yet */ }
+  updateStreakOnLoad();
+  renderAll();
+}
+
+async function saveProgress(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(progress), false);
+  }catch(e){ console.error('save failed', e); }
+}
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function dateMinus(days){
+  const d = new Date();
+  d.setDate(d.getDate()-days);
+  return d.toISOString().slice(0,10);
+}
+
+function updateStreakOnLoad(){
+  const today = todayStr();
+  if(progress.lastActive === today) return;
+  const yesterday = dateMinus(1);
+  if(progress.lastActive === yesterday){
+    progress.streak += 1;
+  } else if(progress.lastActive){
+    progress.streak = 0; // will become 1 once they do something today, tracked on first action
+  }
+  // don't mark lastActive/today yet — only mark once they engage, so opening the app doesn't inflate a lazy streak
+}
+
+function markActivityToday(){
+  const today = todayStr();
+  progress.activityDays[today] = true;
+  if(progress.lastActive !== today){
+    if(progress.streak === 0 && !progress.lastActive){
+      progress.streak = 1;
+    } else if(progress.lastActive === dateMinus(1)){
+      progress.streak = Math.max(progress.streak, 1);
+    } else if(progress.lastActive !== today){
+      if(progress.streak === 0) progress.streak = 1;
+    }
+    progress.lastActive = today;
+  }
+  saveProgress();
+}
+
+/* ============================= RENDER ============================= */
+function renderAll(){
+  document.getElementById('xpDisplay').textContent = progress.xp;
+  document.getElementById('streakDisplay').textContent = progress.streak;
+  const xpHero = document.getElementById('xpDisplayHero');
+  if(xpHero) xpHero.textContent = progress.xp;
+  const streakHero = document.getElementById('streakDisplayHero');
+  if(streakHero) streakHero.textContent = progress.streak;
+  renderModules();
+  renderProgressTab();
+}
+
+function renderModules(){
+  const grid = document.getElementById('moduleGrid');
+  grid.innerHTML = '';
+  MODULES[currentLang].forEach((mod, idx) => {
+    const total = mod.questions.length;
+    let done = 0;
+    mod.questions.forEach((q,qi) => { if(progress.completed[mod.id+'-'+qi]) done++; });
+    const card = document.createElement('button');
+    card.className = 'module-card';
+    card.innerHTML = `
+      <div class="icon">${mod.icon}</div>
+      <div class="title">${mod.title}</div>
+      <div class="module-bar"><div style="width:${(done/total*100)}%"></div></div>
+      <div class="count">${done} / ${total} solved ${done===total ? '' : ''}</div>
+      ${done===total ? '<div class="done-tag">✓ Module complete</div>' : ''}
+    `;
+    card.onclick = () => openModule(idx);
+    grid.appendChild(card);
+  });
+}
+
+function renderProgressTab(){
+  const level = Math.floor(progress.xp/100)+1;
+  const xpIntoLevel = progress.xp % 100;
+  document.getElementById('levelNum').textContent = 'Lv.'+level;
+  document.getElementById('xpNow').textContent = xpIntoLevel;
+  document.getElementById('xpNext').textContent = 100;
+  document.getElementById('xpBarFill').style.width = xpIntoLevel+'%';
+  document.getElementById('streakNum2').textContent = progress.streak;
+
+  const dayGrid = document.getElementById('dayGrid');
+  dayGrid.innerHTML = '';
+  for(let i=13;i>=0;i--){
+    const d = dateMinus(i);
+    const cell = document.createElement('div');
+    cell.className = 'day-cell' + (progress.activityDays[d] ? ' active' : '');
+    cell.title = d;
+    dayGrid.appendChild(cell);
+  }
+
+  const badgeGrid = document.getElementById('badgeGrid');
+  badgeGrid.innerHTML = '';
+  BADGES.forEach(b => {
+    const unlocked = b.check(progress);
+    const el = document.createElement('div');
+    el.className = 'badge' + (unlocked ? ' unlocked' : '');
+    el.innerHTML = `<div class="emoji">${b.emoji}</div><div class="name">${b.name}</div>`;
+    badgeGrid.appendChild(el);
+  });
+
+  document.getElementById('focusStat').textContent =
+    `${todaysFocusSessions()} focus session${todaysFocusSessions()===1?'':'s'} completed today · ${progress.focusMinutes||0} min studied total`;
+}
+
+function todaysFocusSessions(){
+  return progress._todayFocus || 0;
+}
+
+/* ============================= TABS ============================= */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-'+btn.dataset.view).classList.add('active');
+  });
+});
+function goToFocus(){
+  document.querySelector('.tab-btn[data-view="focus"]').click();
+}
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentLang = btn.dataset.lang;
+    renderModules();
+  });
+});
+
+/* ============================= QUIZ ============================= */
+function openModule(idx){
+  activeModule = MODULES[currentLang][idx];
+  activeQIndex = 0;
+  showQuestion();
+  document.getElementById('quizOverlay').classList.add('show');
+}
+function closeQuiz(){
+  document.getElementById('quizOverlay').classList.remove('show');
+  renderAll();
+}
+function showQuestion(){
+  answered = false;
+  const q = activeModule.questions[activeQIndex];
+  document.getElementById('quizTag').textContent = (currentLang==='py'?'PYTHON':'C') + ' · ' + activeModule.title.toUpperCase();
+  const codeBlock = document.getElementById('quizCode');
+  if(q.code && q.code.trim().length){
+    codeBlock.style.display = 'block';
+    codeBlock.textContent = q.code;
+  } else {
+    codeBlock.style.display = 'none';
+  }
+  document.getElementById('quizQuestion').textContent = q.q;
+  document.getElementById('quizFeedback').className = 'feedback';
+  document.getElementById('quizFeedback').textContent = '';
+  document.getElementById('nextBtn').classList.remove('show');
+
+  const optWrap = document.getElementById('quizOptions');
+  const fillRow = document.getElementById('quizFillRow');
+  optWrap.innerHTML = '';
+
+  if(q.type === 'fill'){
+    optWrap.style.display = 'none';
+    fillRow.style.display = 'flex';
+    document.getElementById('quizFillInput').value = '';
+    document.getElementById('quizFillInput').disabled = false;
+  } else {
+    fillRow.style.display = 'none';
+    optWrap.style.display = 'flex';
+    q.options.forEach((opt, i) => {
+      const b = document.createElement('button');
+      b.className = 'opt-btn';
+      b.textContent = opt;
+      b.onclick = () => submitMCQ(i, b);
+      optWrap.appendChild(b);
+    });
+  }
+}
+
+function submitMCQ(i, btnEl){
+  if(answered) return;
+  answered = true;
+  const q = activeModule.questions[activeQIndex];
+  const correct = i === q.answer;
+  document.querySelectorAll('#quizOptions .opt-btn').forEach((b, idx) => {
+    b.disabled = true;
+    if(idx === q.answer) b.classList.add('correct');
+    else if(idx === i && !correct) b.classList.add('wrong');
+  });
+  finishAnswer(correct, q);
+}
+
+function submitFill(){
+  if(answered) return;
+  const q = activeModule.questions[activeQIndex];
+  const val = document.getElementById('quizFillInput').value.trim().toLowerCase();
+  const correct = q.accept.some(a => a.toLowerCase() === val);
+  answered = true;
+  document.getElementById('quizFillInput').disabled = true;
+  finishAnswer(correct, q);
+}
+
+function finishAnswer(correct, q){
+  const qid = activeModule.id + '-' + activeQIndex;
+  const fb = document.getElementById('quizFeedback');
+  fb.classList.add('show');
+  if(correct){
+    fb.classList.add('ok');
+    fb.textContent = '✅ Correct! ' + q.explain;
+    if(!progress.completed[qid]){
+      progress.completed[qid] = true;
+      addXP(10);
+    }
+  } else {
+    fb.classList.add('bad');
+    fb.textContent = '❌ Not quite. ' + q.explain;
+  }
+  markActivityToday();
+  renderAll();
+  document.getElementById('nextBtn').classList.add('show');
+  document.getElementById('nextBtn').textContent =
+    activeQIndex < activeModule.questions.length - 1 ? 'Next →' : 'Finish module ✓';
+}
+
+function nextQuestion(){
+  if(activeQIndex < activeModule.questions.length - 1){
+    activeQIndex++;
+    showQuestion();
+  } else {
+    closeQuiz();
+  }
+}
+
+function addXP(n){
+  progress.xp += n;
+  saveProgress();
+  showXpFloat(n);
+}
+function showXpFloat(n){
+  const el = document.createElement('div');
+  el.className = 'xp-float';
+  el.textContent = '+'+n+' XP';
+  el.style.left = '50%';
+  el.style.top = '40%';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 1100);
+}
+
+function resetProgress(){
+  if(!confirm('Reset all progress? This cannot be undone.')) return;
+  progress = { xp:0, streak:0, lastActive:null, completed:{}, badgesSeen:[], focusSessions:0, focusMinutes:0, activityDays:{} };
+  saveProgress();
+  renderAll();
+}
+
+/* ============================= FOCUS TIMER ============================= */
+let focusMinutesSetting = 25;
+let breakMinutesSetting = 5;
+let secondsLeft = focusMinutesSetting*60;
+let totalSecondsForRing = secondsLeft;
+let timerInterval = null;
+let isBreakPhase = false;
+let isRunning = false;
+
+const RING_CIRC = 2*Math.PI*100;
+document.getElementById('ringFg').style.strokeDasharray = RING_CIRC;
+document.getElementById('ringFg').style.strokeDashoffset = 0;
+
+document.querySelectorAll('.preset-btn[data-focus]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.preset-btn[data-focus]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    focusMinutesSetting = parseInt(btn.dataset.focus);
+    breakMinutesSetting = parseInt(btn.dataset.break);
+    resetTimer();
+  });
+});
+function useCustom(){
+  const v = parseInt(document.getElementById('customMinutes').value);
+  if(!v || v < 1) return;
+  focusMinutesSetting = v;
+  breakMinutesSetting = Math.max(1, Math.round(v/5));
+  document.querySelectorAll('.preset-btn[data-focus]').forEach(b=>b.classList.remove('active'));
+  resetTimer();
+}
+
+const TIPS = [
+  'Leave your phone in another room while you focus.',
+  'One clean 25-minute block beats an hour of distracted study.',
+  'Deep work compounds — small focused sessions add up fast.',
+  'Silence notifications before you start the timer.',
+  'Stretch and breathe during your break, then dive back in.'
+];
+function rotateTip(){
+  document.querySelector('.focus-tip')?.remove();
+  const wrap = document.querySelector('.focus-wrap');
+}
+
+function updateRing(){
+  const total = (isBreakPhase ? breakMinutesSetting : focusMinutesSetting)*60;
+  const frac = secondsLeft/total;
+  const offset = RING_CIRC*(1-frac);
+  document.getElementById('ringFg').style.strokeDashoffset = offset;
+  document.getElementById('ringFg').style.stroke = isBreakPhase ? 'var(--teal)' : 'var(--amber)';
+}
+
+function renderTime(){
+  const m = Math.floor(secondsLeft/60).toString().padStart(2,'0');
+  const s = (secondsLeft%60).toString().padStart(2,'0');
+  document.getElementById('timeDisplay').textContent = `${m}:${s}`;
+  document.getElementById('phaseDisplay').textContent = isBreakPhase ? 'Break' : 'Focus';
+  updateRing();
+  const mini = document.getElementById('miniTimer');
+  if(isRunning){
+    mini.classList.add('show');
+    mini.textContent = (isBreakPhase?'☕ ':'⏱ ') + `${m}:${s}`;
+  } else {
+    mini.classList.remove('show');
+  }
+}
+
+function startTimer(){
+  if(isRunning) return;
+  isRunning = true;
+  document.getElementById('startBtn').style.display = 'none';
+  document.getElementById('pauseBtn').style.display = 'inline-block';
+  timerInterval = setInterval(tick, 1000);
+  renderTime();
+}
+function pauseTimer(){
+  isRunning = false;
+  clearInterval(timerInterval);
+  document.getElementById('startBtn').style.display = 'inline-block';
+  document.getElementById('pauseBtn').style.display = 'none';
+  renderTime();
+}
+function resetTimer(){
+  clearInterval(timerInterval);
+  isRunning = false;
+  isBreakPhase = false;
+  secondsLeft = focusMinutesSetting*60;
+  document.getElementById('startBtn').style.display = 'inline-block';
+  document.getElementById('pauseBtn').style.display = 'none';
+  renderTime();
+}
+function tick(){
+  secondsLeft--;
+  if(secondsLeft < 0){
+    if(!isBreakPhase){
+      // focus session complete
+      progress.focusSessions = (progress.focusSessions||0) + 1;
+      progress.focusMinutes = (progress.focusMinutes||0) + focusMinutesSetting;
+      progress._todayFocus = (progress._todayFocus||0) + 1;
+      addXP(25);
+      markActivityToday();
+      playChime();
+      isBreakPhase = true;
+      secondsLeft = breakMinutesSetting*60;
+    } else {
+      playChime();
+      isBreakPhase = false;
+      secondsLeft = focusMinutesSetting*60;
+      pauseTimer();
+    }
+  }
+  renderTime();
+}
+function playChime(){
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'sine'; o.frequency.value = 660;
+    g.gain.value = 0.001;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime+0.05);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.8);
+    o.stop(ctx.currentTime+0.85);
+  }catch(e){}
+}
+renderTime();
+
+/* ============================= AMBIENT SOUND ============================= */
+class AmbientEngine{
+  constructor(){ this.ctx=null; this.nodes=[]; this.masterGain=null; this.currentType=null; }
+  ensureCtx(){
+    if(!this.ctx){
+      this.ctx = new (window.AudioContext||window.webkitAudioContext)();
+      this.masterGain = this.ctx.createGain();
+      this.masterGain.gain.value = 0.3;
+      this.masterGain.connect(this.ctx.destination);
+    }
+    if(this.ctx.state === 'suspended') this.ctx.resume();
+  }
+  stopAll(){
+    this.nodes.forEach(n=>{
+      try{ n.stop && n.stop(); }catch(e){}
+      try{ n.disconnect && n.disconnect(); }catch(e){}
+    });
+    this.nodes = [];
+    this.currentType = null;
+  }
+  setVolume(v){ if(this.masterGain) this.masterGain.gain.value = v; }
+  play(type){
+    this.ensureCtx();
+    this.stopAll();
+    this.currentType = type;
+    if(type==='calm') this._calmPad();
+    else if(type==='rain') this._rain();
+    else if(type==='lofi') this._lofi();
+  }
+  _calmPad(){
+    const freqs = [130.81,164.81,196.00,261.63];
+    freqs.forEach((f,i) => {
+      const osc = this.ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = f;
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 800;
+      const gain = this.ctx.createGain();
+      gain.gain.value = 0;
+      osc.connect(filter); filter.connect(gain); gain.connect(this.masterGain);
+      osc.start();
+      gain.gain.linearRampToValueAtTime(0.14, this.ctx.currentTime+3);
+      const lfo = this.ctx.createOscillator();
+      lfo.frequency.value = 0.05 + i*0.01;
+      const lfoGain = this.ctx.createGain();
+      lfoGain.gain.value = 200;
+      lfo.connect(lfoGain); lfoGain.connect(filter.frequency);
+      lfo.start();
+      this.nodes.push(osc, lfo, gain, filter, lfoGain);
+    });
+  }
+  _rain(){
+    const bufferSize = 2*this.ctx.sampleRate;
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<bufferSize;i++) data[i] = Math.random()*2-1;
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+    noise.loop = true;
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1000;
+    filter.Q.value = 0.6;
+    const gain = this.ctx.createGain();
+    gain.gain.value = 0.25;
+    noise.connect(filter); filter.connect(gain); gain.connect(this.masterGain);
+    noise.start();
+    this.nodes.push(noise, filter, gain);
+  }
+  _lofi(){
+    const freqs = [220, 277.18, 329.63];
+    freqs.forEach((f,i) => {
+      const osc = this.ctx.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.value = f;
+      const vibrato = this.ctx.createOscillator();
+      vibrato.frequency.value = 4+i;
+      const vibratoGain = this.ctx.createGain();
+      vibratoGain.gain.value = 2;
+      vibrato.connect(vibratoGain); vibratoGain.connect(osc.frequency);
+      vibrato.start();
+      const gain = this.ctx.createGain();
+      gain.gain.value = 0;
+      osc.connect(gain); gain.connect(this.masterGain);
+      osc.start();
+      gain.gain.linearRampToValueAtTime(0.08, this.ctx.currentTime+2);
+      this.nodes.push(osc, vibrato, gain, vibratoGain);
+    });
+  }
+}
+const ambient = new AmbientEngine();
+let currentPlaying = null;
+
+  function getAppTheme(){
+    try{
+      const parentTheme = window.parent && window.parent.document
+        ? window.parent.document.documentElement.getAttribute('data-bs-theme')
+        : null;
+      if (parentTheme === 'dark' || parentTheme === 'light') return parentTheme;
+    }catch(e){}
+    return document.documentElement.getAttribute('data-theme') || localStorage.getItem('theme') || 'light';
+  }
+
+  function syncTheme(){
+    const theme = getAppTheme();
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'theme') syncTheme();
+  });
+
+  window.addEventListener('focus', syncTheme);
+
+  try{
+    const parentRoot = window.parent && window.parent.document ? window.parent.document.documentElement : null;
+    if(parentRoot){
+      const observer = new MutationObserver(syncTheme);
+      observer.observe(parentRoot, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+  }catch(e){}
+
+function toggleSound(type){
+  const cards = document.querySelectorAll('.sound-card');
+  if(currentPlaying === type){
+    ambient.stopAll();
+    currentPlaying = null;
+    cards.forEach(c => { c.classList.remove('playing'); c.querySelector('.play-toggle').textContent = 'Play'; });
+    return;
+  }
+  ambient.play(type);
+  currentPlaying = type;
+  cards.forEach(c => {
+    const active = c.dataset.sound === type;
+    c.classList.toggle('playing', active);
+    c.querySelector('.play-toggle').textContent = active ? 'Stop' : 'Play';
+  });
+}
+function setVolume(v){
+  ambient.setVolume(v/100);
+}
+
+/* ============================= INIT ============================= */
+syncTheme();
+loadProgress();
+</script>
+</body>
+</html>
