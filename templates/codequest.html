@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}CodeQuest — AI Study Planner{% endblock %}
+
+{% block extra_css %}
+<style>
+  .main-content {
+    padding-top: 70px;
+  }
+
+  .codequest-frame {
+    display: block;
+    width: 100%;
+    height: calc(100vh - 70px);
+    border: 0;
+    background: transparent;
+  }
+
+  @media (max-width: 991.98px) {
+    .codequest-frame {
+      height: calc(100vh - 70px);
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0 py-0" style="min-height: 100vh;">
+  <iframe src="{{ url_for('codequest_raw') }}" title="CodeQuest" class="codequest-frame" loading="lazy"></iframe>
+</div>
+{% endblock %}
